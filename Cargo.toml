@@ -1,0 +1,17 @@
+[package]
+name = "quick_search"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+eframe = "0.29"
+egui = "0.29"
+walkdir = "2.5"
+meval = "0.2"
+webbrowser = "1.0"
+dirs = "5.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
