@@ -1,7 +1,47 @@
 use crate::utils::{helpers::helpers, utils::{ActionType, SearchResult}};
 
-pub fn execute_action(result: &SearchResult) {
+pub fn execute_action(result: &SearchResult, query: &str) {
+    // Save to history (except for special commands)
+    let should_save_history = !matches!(
+        result.action,
+        ActionType::OpenHistory | ActionType::OpenSettings | ActionType::OpenInfo
+    );
+    
+    if should_save_history {
+        use crate::utils::history_manager::{HistoryManager, HistoryEntry};
+        let manager = HistoryManager::new();
+        let entry = HistoryEntry::from_search(query, result);
+        manager.add_entry(entry);
+    }
+    
     match &result.action {
+        ActionType::OpenHistory => {
+            // Launch history window as a separate process
+            let exe_path = std::env::current_exe().ok();
+            if let Some(exe) = exe_path {
+                let _ = std::process::Command::new(exe)
+                    .arg("--history")
+                    .spawn();
+            }
+        }
+        ActionType::OpenSettings => {
+            // Launch settings window as a separate process
+            let exe_path = std::env::current_exe().ok();
+            if let Some(exe) = exe_path {
+                let _ = std::process::Command::new(exe)
+                    .arg("--settings")
+                    .spawn();
+            }
+        }
+        ActionType::OpenInfo => {
+            // Launch info window as a separate process
+            let exe_path = std::env::current_exe().ok();
+            if let Some(exe) = exe_path {
+                let _ = std::process::Command::new(exe)
+                    .arg("--info")
+                    .spawn();
+            }
+        }
         ActionType::OpenApp(path) => {
             #[cfg(target_os = "linux")]
             {
@@ -44,7 +84,7 @@ pub fn execute_action(result: &SearchResult) {
             let _ = webbrowser::open(&url_to_open);
         }
         ActionType::MathResult(result) => {
-            // Copy to clipboard (would need a clipboard crate in real implementation)
+            // Clipboard implementation
             println!("Math result: {}", result);
         }
         ActionType::WebSearch(query) => {

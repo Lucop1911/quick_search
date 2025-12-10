@@ -10,6 +10,9 @@ pub struct SearchResult {
 
 #[derive(Clone, Debug)]
 pub enum ActionType {
+    OpenSettings,
+    OpenHistory,
+    OpenInfo,
     OpenApp(PathBuf),
     OpenPath(PathBuf),
     OpenUrl(String),

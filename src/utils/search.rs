@@ -5,6 +5,43 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
     let mut results = Vec::new();
     let query_lower = query.to_lowercase();
     
+    // Handle special commands starting with @
+    if query.starts_with('@') {
+        let command = query[1..].to_lowercase();
+        
+        if command.contains("settings") || "settings".contains(&command) {
+            results.push(SearchResult {
+                title: "Settings".to_string(),
+                subtitle: "Configure Quick Search".to_string(),
+                icon: "⚙️".to_string(),
+                action: ActionType::OpenSettings,
+            });
+        }
+        
+        if command.contains("info") || "info".contains(&command) {
+            results.push(SearchResult {
+                title: "Informations".to_string(),
+                subtitle: "Application information".to_string(),
+                icon: "ℹ️".to_string(),
+                action: ActionType::OpenInfo,
+            });
+        }
+        
+        if command.contains("history") || "history".contains(&command) {
+            results.push(SearchResult {
+                title: "History".to_string(),
+                subtitle: "View search history".to_string(),
+                icon: "📜".to_string(),
+                action: ActionType::OpenHistory,
+            });
+        }
+        
+        // If we found special commands, return them
+        if !results.is_empty() {
+            return results;
+        }
+    }
+
     // Check for math expression
     if let Some(math_result) = evaluate_math(query) {
         results.push(SearchResult {

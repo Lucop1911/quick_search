@@ -29,6 +29,5 @@ pub fn check_path(text: &str) -> Option<SearchResult> {
             }
         }
     }
-    
     None
 }
