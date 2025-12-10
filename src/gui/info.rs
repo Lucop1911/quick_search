@@ -42,7 +42,7 @@ impl eframe::App for InfoApp {
                 ui.add_space(12.0);
 
                 ScrollArea::vertical().max_height(550.0).show(ui, |ui| {
-                    // --- Application Info ---
+                    // General infos
                     self.render_section(ui, "Application", |ui| {
                         ui.label(RichText::new("Quick Search").size(16.0).strong().color(Color32::from_rgb(240, 240, 245)));
                         ui.label(RichText::new("Version 0.1.0").size(13.0).color(Color32::from_rgb(180, 180, 190)));
@@ -54,7 +54,7 @@ impl eframe::App for InfoApp {
 
                     ui.add_space(16.0);
 
-                    // --- Features ---
+                    // Features
                     self.render_section(ui, "Features", |ui| {
                         let features = vec![
                             ("🔍", "Search Applications", "Find and launch apps instantly"),
@@ -85,7 +85,7 @@ impl eframe::App for InfoApp {
 
                     ui.add_space(16.0);
 
-                    // --- Keyboard Shortcuts ---
+                    // Keyboard Shortcuts
                     self.render_section(ui, "Keyboard Shortcuts", |ui| {
                         let shortcuts = vec![
                             ("↵ Enter", "Execute selected action"),
@@ -107,7 +107,7 @@ impl eframe::App for InfoApp {
 
                     ui.add_space(16.0);
 
-                    // --- Special Commands ---
+                    // Special Commands
                     self.render_section(ui, "Special Commands", |ui| {
                         let commands = vec![
                             ("@history", "Open search history"),
@@ -127,7 +127,7 @@ impl eframe::App for InfoApp {
 
                     ui.add_space(16.0);
 
-                    // --- System Information ---
+                    // System Information
                     self.render_section(ui, "System Information", |ui| {
                         self.render_sys_info_row(ui, "Platform", std::env::consts::OS);
                         self.render_sys_info_row(ui, "Architecture", std::env::consts::ARCH);
@@ -136,15 +136,14 @@ impl eframe::App for InfoApp {
 
                     ui.add_space(24.0);
 
-                    // --- Footer ---
+                    // Footer
                     ui.vertical_centered(|ui| {
-                        ui.label(RichText::new("Built with ❤️ using Rust")
+                        ui.label(RichText::new("Built in Rust")
                             .size(11.0)
                             .color(Color32::from_rgb(120, 120, 130)));
                     });
                 });
 
-                // Close with Esc
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                 }

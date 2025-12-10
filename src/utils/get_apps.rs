@@ -7,7 +7,7 @@ pub fn get_applications(query: &str) -> Vec<SearchResult> {
     
     {
         use walkdir::WalkDir;
-        // Search in common Linux application directories
+        // Search in common Linux app dirs
         let app_dirs = vec![
             "/usr/share/applications",
             "/usr/local/share/applications",

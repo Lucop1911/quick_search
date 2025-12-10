@@ -37,17 +37,15 @@ pub fn parse_desktop_file(path: &Path, query: &str) -> Option<SearchResult> {
     
     if let (Some(app_name), Some(exec_cmd)) = (name, exec) {
         if app_name.to_lowercase().contains(query) {
-            // Verify the executable exists before adding
-
             use std::path::PathBuf;
-
             use crate::utils::utils::{ActionType, SearchResult};
+
             let exec_parts: Vec<&str> = exec_cmd.split_whitespace().collect();
             if let Some(exec_bin) = exec_parts.first() {
                 // Clean up field codes like %U, %F, etc.
                 let exec_clean = exec_bin.trim_matches('"');
                 
-                // Check if it's an absolute path that exists or if it's in PATH
+                // Check if it's an absolute path that exists
                 if Path::new(exec_clean).is_absolute() {
                     use std::path::Path;
 

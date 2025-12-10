@@ -7,7 +7,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
     
     // Detect if this instance is a temporary window (spawned by the hotkey listener).
-    let is_temp_window = args.iter().any(|a| a == "--temp-window");
+    let _is_temp_window = args.iter().any(|a| a == "--temp-window");
     // Check for special command-line arguments
     if args.len() > 1 {
         match args[1].as_str() {
@@ -65,14 +65,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Box::new(|cc| Ok(Box::new(gui::search_bar::QuickSearchApp::new(cc)))),
         )?;
     }
-    // On Windows: if this is the main/resident instance (not a temp window),
-    // start the background hotkey listener instead of exiting so the app
-    // continues running and can open new search windows with Alt+S.
+
     #[cfg(target_os = "windows")]
     {
-        if !is_temp_window {
+        if !_is_temp_window {
             println!("Quick Search entering background listener (Windows). Press Alt+S to open the search bar.");
-            // This will block and run a Win32 message loop that listens for Alt+S.
+            // loop for the ALT+S hotkey
             crate::utils::hotkey_listener::start_hotkey_listener();
         }
     }

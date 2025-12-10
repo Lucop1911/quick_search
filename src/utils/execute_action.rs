@@ -16,7 +16,6 @@ pub fn execute_action(result: &SearchResult, query: &str) {
     
     match &result.action {
         ActionType::OpenHistory => {
-            // Launch history window as a separate process
             let exe_path = std::env::current_exe().ok();
             if let Some(exe) = exe_path {
                 let _ = std::process::Command::new(exe)
@@ -25,7 +24,6 @@ pub fn execute_action(result: &SearchResult, query: &str) {
             }
         }
         ActionType::OpenSettings => {
-            // Launch settings window as a separate process
             let exe_path = std::env::current_exe().ok();
             if let Some(exe) = exe_path {
                 let _ = std::process::Command::new(exe)
@@ -34,7 +32,6 @@ pub fn execute_action(result: &SearchResult, query: &str) {
             }
         }
         ActionType::OpenInfo => {
-            // Launch info window as a separate process
             let exe_path = std::env::current_exe().ok();
             if let Some(exe) = exe_path {
                 let _ = std::process::Command::new(exe)
@@ -84,7 +81,7 @@ pub fn execute_action(result: &SearchResult, query: &str) {
             let _ = webbrowser::open(&url_to_open);
         }
         ActionType::MathResult(result) => {
-            // Clipboard implementation
+            // Future clipboard implementation
             println!("Math result: {}", result);
         }
         ActionType::WebSearch(query) => {

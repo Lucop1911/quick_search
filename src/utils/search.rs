@@ -36,7 +36,6 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
             });
         }
         
-        // If we found special commands, return them
         if !results.is_empty() {
             return results;
         }

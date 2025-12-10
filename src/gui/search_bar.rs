@@ -7,7 +7,7 @@ pub struct QuickSearchApp {
     results: Vec<SearchResult>,
     selected_index: usize,
     first_frame: bool,
-    window_height: f32,
+    _window_height: f32,
 }
 
 impl QuickSearchApp {
@@ -17,7 +17,7 @@ impl QuickSearchApp {
             results: Vec::new(),
             selected_index: 0,
             first_frame: true,
-            window_height: 130.0,
+            _window_height: 130.0,
         }
     }
     
@@ -45,7 +45,6 @@ impl QuickSearchApp {
 
 impl eframe::App for QuickSearchApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Define a modern, subtle blue color for highlighting
         const BLUE_HIGHLIGHT: Color32 = Color32::from_rgb(50, 140, 255);
         
         // Main window Frame: Almost fully transparent background
@@ -93,8 +92,7 @@ impl eframe::App for QuickSearchApp {
                 ui.set_style(original_style); 
                 
                 if self.first_frame { 
-                    search_response.request_focus(); 
-                    // On Windows center the viewport on the primary monitor so the bar appears centered
+                    search_response.request_focus();
                     #[cfg(target_os = "windows")]
                     {
                         if let Some(cmd) = egui::ViewportCommand::center_on_screen(ctx) {
@@ -110,7 +108,7 @@ impl eframe::App for QuickSearchApp {
                         // Re-run search when input changes
                         self.search();
 
-                        // On Windows, resize the viewport to show suggestions when present.
+                        // Responsive layout for windows
                         #[cfg(target_os = "windows")]
                         {
                             let base_height = 60.0f32;
@@ -153,7 +151,7 @@ impl eframe::App for QuickSearchApp {
                     }
                 }
                 
-                // --- Display suggestions ---
+                // SUGGESTIONS
                 if !self.results.is_empty() {
                     ui.add_space(4.0);
                     ui.separator();
@@ -162,7 +160,7 @@ impl eframe::App for QuickSearchApp {
                     // On Windows show a vertical list of suggestions (responsive)
                     #[cfg(target_os = "windows")]
                     {
-                        // Limit number of visible suggestions to avoid huge windows
+                        // Limited suggestions
                         let max_visible = 6usize;
                         let mut hovered_index: Option<usize> = None;
                         let mut clicked_index: Option<usize> = None;
@@ -229,7 +227,7 @@ impl eframe::App for QuickSearchApp {
                         }
                     }
 
-                    // Non-Windows fallback: keep previous single-selected display
+                    // Single display for linux
                     #[cfg(not(target_os = "windows"))]
                     {
                         if let Some(result) = self.results.get(self.selected_index) {

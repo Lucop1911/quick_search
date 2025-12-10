@@ -122,10 +122,10 @@ impl HistoryManager {
     pub fn add_entry(&self, entry: HistoryEntry) {
         let mut history = self.load_history();
         
-        // Add to the beginning (most recent first)
+        // Most recent first
         history.insert(0, entry);
         
-        // Limit to last 100 entries
+        // Only last 100 entries
         history.truncate(100);
         
         let _ = self.save_history(&history);
@@ -165,13 +165,11 @@ impl HistoryApp {
     }
     
     pub fn delete_entry(&mut self, entry: &HistoryEntry) {
-        // Load full history
         let mut all = self.history_manager.load_history();
     
-        // The filtered list entry
         let target = entry;
     
-        // Find the matching entry in the full list
+        // Find the matching entry in the list
         if let Some(real_index) = all.iter().position(|e|
             e.query == target.query &&
             e.result_title == target.result_title &&
@@ -181,7 +179,6 @@ impl HistoryApp {
             all.remove(real_index);
             let _ = self.history_manager.save_history(&all);
     
-            // Reset selection safely
             self.selected_index = None;
         }
     }

@@ -1,8 +1,6 @@
-use eframe::egui;
-use egui::{Frame, CornerRadius, Color32, Margin, ScrollArea};
 use crate::utils::history_manager::HistoryManager;
-
-const BLUE_HIGHLIGHT: Color32 = Color32::from_rgb(50, 140, 255);
+use eframe::egui;
+use egui::{Color32, CornerRadius, Frame, Margin, ScrollArea};
 
 pub struct HistoryApp {
     pub(crate) history_manager: HistoryManager,
@@ -19,6 +17,8 @@ impl HistoryApp {
         }
     }
 }
+
+const BLUE_HIGHLIGHT: Color32 = Color32::from_rgb(50, 140, 255);
 
 impl eframe::App for HistoryApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
@@ -67,11 +67,7 @@ impl eframe::App for HistoryApp {
                 }
                 .show(ui, |ui| {
                     ui.horizontal(|ui| {
-                        ui.label(
-                            egui::RichText::new("🔍")
-                                .size(16.0)
-                                .color(BLUE_HIGHLIGHT),
-                        );
+                        ui.label(egui::RichText::new("🔍").size(16.0).color(BLUE_HIGHLIGHT));
 
                         ui.add(
                             egui::TextEdit::singleline(&mut self.search_filter)
@@ -82,19 +78,23 @@ impl eframe::App for HistoryApp {
                     });
                 });
 
-
                 ui.add_space(12.0);
 
                 // Action buttons
                 ui.horizontal(|ui| {
-                    if ui.button(egui::RichText::new("🗑️ Clear All").size(12.0)).clicked() {
+                    if ui
+                        .button(egui::RichText::new("🗑️ Clear All").size(12.0))
+                        .clicked()
+                    {
                         self.clear_history();
                     }
-                    
+
                     let total_items = self.history_manager.load_history().len();
-                    ui.label(egui::RichText::new(format!("Total: {} items", total_items))
-                        .size(12.0)
-                        .color(Color32::from_rgb(150, 150, 160)));
+                    ui.label(
+                        egui::RichText::new(format!("Total: {} items", total_items))
+                            .size(12.0)
+                            .color(Color32::from_rgb(150, 150, 160)),
+                    );
                 });
 
                 ui.add_space(8.0);
@@ -103,7 +103,7 @@ impl eframe::App for HistoryApp {
 
                 // History list
                 let filtered_history = self.get_filtered_history();
-                
+
                 if filtered_history.is_empty() {
                     ui.vertical_centered(|ui| {
                         ui.add_space(40.0);
@@ -159,9 +159,9 @@ impl eframe::App for HistoryApp {
                                                 "🔢" => "[CALC]",
                                                 _ => "[?]",
                                             })
-                                                .size(12.0)
-                                                .color(BLUE_HIGHLIGHT)
-                                                .monospace(),
+                                            .size(12.0)
+                                            .color(BLUE_HIGHLIGHT)
+                                            .monospace(),
                                         );
 
                                         ui.add_space(8.0);
@@ -187,28 +187,31 @@ impl eframe::App for HistoryApp {
                                             );
                                         });
 
-                                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                                            let delete_response = ui
-                                                .button(
-                                                    egui::RichText::new("🗑")
-                                                        .size(13.0)
-                                                        .color(Color32::from_rgb(220, 80, 80)),
-                                                )
-                                                .on_hover_text("Delete entry");
+                                        ui.with_layout(
+                                            egui::Layout::right_to_left(egui::Align::Center),
+                                            |ui| {
+                                                let delete_response = ui
+                                                    .button(
+                                                        egui::RichText::new("🗑")
+                                                            .size(13.0)
+                                                            .color(Color32::from_rgb(220, 80, 80)),
+                                                    )
+                                                    .on_hover_text("Delete entry");
 
-                                            if delete_response.clicked() {
-                                                self.delete_entry(entry);
-                                            }
+                                                if delete_response.clicked() {
+                                                    self.delete_entry(entry);
+                                                }
 
-                                            // capture the rect for click exclusion
-                                            delete_rect = Some(delete_response.rect);
-                                        });
+                                                // capture the rect for click exclusion
+                                                delete_rect = Some(delete_response.rect);
+                                            },
+                                        );
                                     });
                                 });
 
                                 let row_rect = response.response.rect;
 
-                                // Make the row clickable *except where delete button sits*
+                                // Make the row clickable (except for delete button)
                                 let final_click_rect = if let Some(del) = delete_rect {
                                     egui::Rect::from_min_max(
                                         row_rect.min,
@@ -234,7 +237,6 @@ impl eframe::App for HistoryApp {
 
                                 ui.add_space(6.0);
                             }
-
                         });
                 }
 
