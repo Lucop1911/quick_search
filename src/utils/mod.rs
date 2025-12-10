@@ -7,3 +7,4 @@ pub mod check_path;
 pub mod linux;
 pub mod windows;
 pub mod history_manager;
+pub mod hotkey_listener;

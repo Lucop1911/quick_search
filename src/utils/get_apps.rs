@@ -1,12 +1,12 @@
-use walkdir::WalkDir;
-
 use crate::utils::utils::SearchResult;
 
 pub fn get_applications(query: &str) -> Vec<SearchResult> {
     let mut results = Vec::new();
     
     #[cfg(target_os = "linux")]
+    
     {
+        use walkdir::WalkDir;
         // Search in common Linux application directories
         let app_dirs = vec![
             "/usr/share/applications",
@@ -47,6 +47,7 @@ pub fn get_applications(query: &str) -> Vec<SearchResult> {
     
     #[cfg(target_os = "windows")]
     {
+        use crate::utils::windows::search_windows_shortcuts;
         // Search Windows Start Menu
         let start_menu_paths = vec![
             r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs",
@@ -60,6 +61,8 @@ pub fn get_applications(query: &str) -> Vec<SearchResult> {
         }
         
         for path in start_menu_paths {
+            use std::path::Path;
+
             if Path::new(path).exists() {
                 search_windows_shortcuts(Path::new(path), query, &mut results);
             }

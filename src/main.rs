@@ -6,6 +6,8 @@ use eframe::egui;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
     
+    // Detect if this instance is a temporary window (spawned by the hotkey listener).
+    let is_temp_window = args.iter().any(|a| a == "--temp-window");
     // Check for special command-line arguments
     if args.len() > 1 {
         match args[1].as_str() {
@@ -24,24 +26,57 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Run main search window
     println!("Quick Search started.");
-        
-    let native_options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
-            .with_inner_size([400.0, 130.0])
-            .with_decorations(false)
-            .with_transparent(true)
-            .with_resizable(false)
-            .with_position([660.0, 20.0])
-            .with_always_on_top(),
-        ..Default::default()
-    };
-    
-    eframe::run_native(
-        "Quick Search",
-        native_options,
-        Box::new(|cc| Ok(Box::new(gui::search_bar::QuickSearchApp::new(cc)))),
-    )?;
-    
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        let native_options = eframe::NativeOptions {
+            viewport: egui::ViewportBuilder::default()
+                .with_inner_size([400.0, 130.0])
+                .with_decorations(false)
+                .with_transparent(true)
+                .with_resizable(false)
+                .with_position([600.0, 20.0])
+                .with_always_on_top(),
+            ..Default::default()
+        };
+
+        eframe::run_native(
+            "Quick Search",
+            native_options,
+            Box::new(|cc| Ok(Box::new(gui::search_bar::QuickSearchApp::new(cc)))),
+        )?;
+    }
+
+    #[cfg(target_os = "windows")]
+    {  
+        let native_options = eframe::NativeOptions {
+            viewport: egui::ViewportBuilder::default()
+                .with_inner_size([400.0, 60.0])
+                .with_decorations(false)
+                .with_transparent(true)
+                .with_resizable(false)
+                .with_always_on_top(),
+            ..Default::default()
+        };
+
+        eframe::run_native(
+            "Quick Search",
+            native_options,
+            Box::new(|cc| Ok(Box::new(gui::search_bar::QuickSearchApp::new(cc)))),
+        )?;
+    }
+    // On Windows: if this is the main/resident instance (not a temp window),
+    // start the background hotkey listener instead of exiting so the app
+    // continues running and can open new search windows with Alt+S.
+    #[cfg(target_os = "windows")]
+    {
+        if !is_temp_window {
+            println!("Quick Search entering background listener (Windows). Press Alt+S to open the search bar.");
+            // This will block and run a Win32 message loop that listens for Alt+S.
+            crate::utils::hotkey_listener::start_hotkey_listener();
+        }
+    }
+
     Ok(())
 }
 

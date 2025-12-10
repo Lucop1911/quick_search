@@ -7,6 +7,7 @@ pub struct QuickSearchApp {
     results: Vec<SearchResult>,
     selected_index: usize,
     first_frame: bool,
+    window_height: f32,
 }
 
 impl QuickSearchApp {
@@ -16,6 +17,7 @@ impl QuickSearchApp {
             results: Vec::new(),
             selected_index: 0,
             first_frame: true,
+            window_height: 130.0,
         }
     }
     
@@ -92,14 +94,42 @@ impl eframe::App for QuickSearchApp {
                 
                 if self.first_frame { 
                     search_response.request_focus(); 
+                    // On Windows center the viewport on the primary monitor so the bar appears centered
+                    #[cfg(target_os = "windows")]
+                    {
+                        if let Some(cmd) = egui::ViewportCommand::center_on_screen(ctx) {
+                            ctx.send_viewport_cmd(cmd);
+                        }
+                    }
                     self.first_frame = false; 
                 }
                 
                 if search_response.changed() { 
                     self.search(); 
-                }
-                
-                if ui.input(|i| i.key_pressed(egui::Key::Escape)) { 
+                    if search_response.changed() {
+                        // Re-run search when input changes
+                        self.search();
+
+                        // On Windows, resize the viewport to show suggestions when present.
+                        #[cfg(target_os = "windows")]
+                        {
+                            let base_height = 60.0f32;
+                            let per_item = 42.0f32;
+                            let max_extra_items = 6usize; // limit suggestions to avoid huge windows
+                            let items = (self.results.len()).min(max_extra_items) as f32;
+                            let desired = base_height + items * per_item;
+
+                                    if (desired - self.window_height).abs() > 1.0 {
+                                        self.window_height = desired;
+                                        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(
+                                            egui::vec2(400.0, self.window_height),
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+
+                        if ui.input(|i| i.key_pressed(egui::Key::Escape)) { 
                     ctx.send_viewport_cmd(egui::ViewportCommand::Close); 
                 }
                 
@@ -123,65 +153,138 @@ impl eframe::App for QuickSearchApp {
                     }
                 }
                 
-                // --- Display Single Selected Result ---
+                // --- Display suggestions ---
                 if !self.results.is_empty() {
                     ui.add_space(4.0);
-                    ui.separator(); 
+                    ui.separator();
                     ui.add_space(4.0);
-                    
-                    if let Some(result) = self.results.get(self.selected_index) {
-                        let is_selected = true; 
-                        
-                        let frame = Frame {
-                            fill: if is_selected {
-                                Color32::from_rgba_unmultiplied(80, 85, 110, 240) 
-                            } else {
-                                Color32::from_rgba_unmultiplied(20, 20, 24, 5) 
-                            },
-                            corner_radius: CornerRadius::ZERO,
-                            inner_margin: Margin::symmetric(8, 8),
-                            ..Frame::default()
-                        };
 
-                        let response = frame.show(ui, |ui| {
-                            ui.set_width(ui.available_width());
-                            ui.horizontal(|ui| {
-                                let icon_text = match result.icon.as_str() {
-                                    "📱" => "[APP]", "🌐" => "[WEB]", "📁" => "[DIR]", 
-                                    "📄" => "[FILE]", "🔢" => "[CALC]", "🔍" => "[SEARCH]",
-                                    "⚙️" => "[SET]", "ℹ️" => "[INFO]", "📜" => "[HIST]",
-                                    _ => "[?]",
-                                };
-                                
-                                ui.label(egui::RichText::new(icon_text)
-                                    .size(14.0)
-                                    .color(BLUE_HIGHLIGHT)
-                                    .monospace());
-                                ui.add_space(8.0);
-                                ui.vertical(|ui| {
-                                    ui.spacing_mut().item_spacing.y = 1.0;
-                                    ui.label(egui::RichText::new(&result.title)
+                    // On Windows show a vertical list of suggestions (responsive)
+                    #[cfg(target_os = "windows")]
+                    {
+                        // Limit number of visible suggestions to avoid huge windows
+                        let max_visible = 6usize;
+                        let mut hovered_index: Option<usize> = None;
+                        let mut clicked_index: Option<usize> = None;
+
+                        for (i, result) in self.results.iter().enumerate().take(max_visible) {
+                            let is_selected = i == self.selected_index;
+
+                            let item_frame = Frame {
+                                fill: if is_selected {
+                                    Color32::from_rgba_unmultiplied(80, 85, 110, 240)
+                                } else {
+                                    Color32::from_rgba_unmultiplied(20, 20, 24, 5)
+                                },
+                                corner_radius: CornerRadius::same(4),
+                                inner_margin: Margin::symmetric(8, 8),
+                                ..Frame::default()
+                            };
+
+                            let item_resp = item_frame.show(ui, |ui| {
+                                ui.set_width(ui.available_width());
+                                ui.horizontal(|ui| {
+                                    let icon_text = match result.icon.as_str() {
+                                        "📱" => "[APP]", "🌐" => "[WEB]", "📁" => "[DIR]",
+                                        "📄" => "[FILE]", "🔢" => "[CALC]", "🔍" => "[SEARCH]",
+                                        "⚙️" => "[SET]", "ℹ️" => "[INFO]", "📜" => "[HIST]",
+                                        _ => "[?]",
+                                    };
+
+                                    ui.label(egui::RichText::new(icon_text)
                                         .size(14.0)
-                                        .color(Color32::from_rgb(240, 240, 245)));
-                                    ui.label(egui::RichText::new(&result.subtitle)
-                                        .size(11.0)
-                                        .color(Color32::from_rgb(150, 150, 160)));
+                                        .color(BLUE_HIGHLIGHT)
+                                        .monospace());
+                                    ui.add_space(8.0);
+                                    ui.vertical(|ui| {
+                                        ui.spacing_mut().item_spacing.y = 1.0;
+                                        ui.label(egui::RichText::new(&result.title)
+                                            .size(14.0)
+                                            .color(Color32::from_rgb(240, 240, 245)));
+                                        ui.label(egui::RichText::new(&result.subtitle)
+                                            .size(11.0)
+                                            .color(Color32::from_rgb(150, 150, 160)));
+                                    });
                                 });
                             });
-                        });
-                        
-                        let rect = response.response.rect;
-                        let hover_response = ui.interact(
-                            rect,
-                            egui::Id::new("single_result_interaction"),
-                            egui::Sense::click()
-                        );
-                        
-                        if hover_response.clicked() {
+
+                            let rect = item_resp.response.rect;
+                            let hover = ui.interact(rect, egui::Id::new(i), egui::Sense::click());
+                            if hover.hovered() {
+                                hovered_index = Some(i);
+                            }
+                            if hover.clicked() {
+                                clicked_index = Some(i);
+                            }
+
+                            ui.add_space(4.0);
+                        }
+
+                        if let Some(h) = hovered_index {
+                            self.selected_index = h;
+                        }
+                        if let Some(c) = clicked_index {
+                            self.selected_index = c;
                             self.execute_selected(ctx);
                         }
-                        
-                        ui.add_space(4.0);
+                    }
+
+                    // Non-Windows fallback: keep previous single-selected display
+                    #[cfg(not(target_os = "windows"))]
+                    {
+                        if let Some(result) = self.results.get(self.selected_index) {
+                            let is_selected = true;
+
+                            let frame = Frame {
+                                fill: if is_selected {
+                                    Color32::from_rgba_unmultiplied(80, 85, 110, 240)
+                                } else {
+                                    Color32::from_rgba_unmultiplied(20, 20, 24, 5)
+                                },
+                                corner_radius: CornerRadius::ZERO,
+                                inner_margin: Margin::symmetric(8, 8),
+                                ..Frame::default()
+                            };
+
+                            let response = frame.show(ui, |ui| {
+                                ui.set_width(ui.available_width());
+                                ui.horizontal(|ui| {
+                                    let icon_text = match result.icon.as_str() {
+                                        "📱" => "[APP]", "🌐" => "[WEB]", "📁" => "[DIR]",
+                                        "📄" => "[FILE]", "🔢" => "[CALC]", "🔍" => "[SEARCH]",
+                                        "⚙️" => "[SET]", "ℹ️" => "[INFO]", "📜" => "[HIST]",
+                                        _ => "[?]",
+                                    };
+
+                                    ui.label(egui::RichText::new(icon_text)
+                                        .size(14.0)
+                                        .color(BLUE_HIGHLIGHT)
+                                        .monospace());
+                                    ui.add_space(8.0);
+                                    ui.vertical(|ui| {
+                                        ui.spacing_mut().item_spacing.y = 1.0;
+                                        ui.label(egui::RichText::new(&result.title)
+                                            .size(14.0)
+                                            .color(Color32::from_rgb(240, 240, 245)));
+                                        ui.label(egui::RichText::new(&result.subtitle)
+                                            .size(11.0)
+                                            .color(Color32::from_rgb(150, 150, 160)));
+                                    });
+                                });
+                            });
+
+                            let rect = response.response.rect;
+                            let hover_response = ui.interact(
+                                rect,
+                                egui::Id::new("single_result_interaction"),
+                                egui::Sense::click(),
+                            );
+
+                            if hover_response.clicked() {
+                                self.execute_selected(ctx);
+                            }
+                            ui.add_space(4.0);
+                        }
                     }
                 }
             });

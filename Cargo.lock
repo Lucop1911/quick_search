@@ -2436,6 +2436,7 @@ dependencies = [
  "serde_json",
  "walkdir",
  "webbrowser",
+ "winapi",
 ]
 
 [[package]]
