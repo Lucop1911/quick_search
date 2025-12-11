@@ -50,7 +50,7 @@ impl eframe::App for QuickSearchApp {
         // Main window Frame: Almost fully transparent background
         egui::CentralPanel::default()
             .frame(Frame {
-                fill: Color32::from_rgba_unmultiplied(20, 20, 24, 1),
+                fill: Color32::from_rgba_unmultiplied(20, 20, 24, 130),
                 corner_radius: CornerRadius::ZERO,
                 inner_margin: Margin::same(8),
                 outer_margin: 0.0.into(),
@@ -76,6 +76,39 @@ impl eframe::App for QuickSearchApp {
                 custom_visuals.widgets.active.fg_stroke.color = BLUE_HIGHLIGHT;
                 ui.style_mut().visuals = custom_visuals;
 
+
+                if ui.input(|i| i.key_pressed(egui::Key::Escape)) { 
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Close); 
+                }
+                
+                if ui.input(|i| i.key_pressed(egui::Key::Enter)) { 
+                    self.execute_selected(ctx); 
+                }
+                
+                if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
+                    ui.input_mut(|i| {
+                        i.consume_key(egui::Modifiers::NONE, egui::Key::ArrowDown)
+                    });
+
+                    if self.selected_index < self.results.len().saturating_sub(1) { 
+                        self.selected_index += 1; 
+                    } else if !self.results.is_empty() { 
+                        self.selected_index = 0; 
+                    }
+                }
+                
+                if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
+                    ui.input_mut(|i| {
+                        i.consume_key(egui::Modifiers::NONE, egui::Key::ArrowUp)
+                    });
+
+                    if self.selected_index > 0 { 
+                        self.selected_index = self.selected_index.saturating_sub(1); 
+                    } else if !self.results.is_empty() { 
+                        self.selected_index = self.results.len().saturating_sub(1); 
+                    }
+                }
+
                 let search_response = search_frame.show(ui, |ui| {
                     ui.set_width(ui.available_width());
                     let response = ui.add(
@@ -85,6 +118,8 @@ impl eframe::App for QuickSearchApp {
                             .hint_text("🔎 Search or type @info for help")
                             .desired_width(f32::INFINITY)
                             .frame(false) 
+                            .lock_focus(true)
+                            .cursor_at_end(true)
                     );
                     response
                 }).inner;
@@ -117,37 +152,13 @@ impl eframe::App for QuickSearchApp {
                             let items = (self.results.len()).min(max_extra_items) as f32;
                             let desired = base_height + items * per_item;
 
-                                    if (desired - self.window_height).abs() > 1.0 {
-                                        self.window_height = desired;
-                                        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(
-                                            egui::vec2(400.0, self.window_height),
-                                        ));
-                                    }
-                                }
+                            if (desired - self._window_height).abs() > 1.0 {
+                                self._window_height = desired;
+                                ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(
+                                    egui::vec2(400.0, self._window_height),
+                                ));
                             }
                         }
-
-                        if ui.input(|i| i.key_pressed(egui::Key::Escape)) { 
-                    ctx.send_viewport_cmd(egui::ViewportCommand::Close); 
-                }
-                
-                if ui.input(|i| i.key_pressed(egui::Key::Enter)) { 
-                    self.execute_selected(ctx); 
-                }
-                
-                if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
-                    if self.selected_index < self.results.len().saturating_sub(1) { 
-                        self.selected_index += 1; 
-                    } else if !self.results.is_empty() { 
-                        self.selected_index = 0; 
-                    }
-                }
-                
-                if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
-                    if self.selected_index > 0 { 
-                        self.selected_index = self.selected_index.saturating_sub(1); 
-                    } else if !self.results.is_empty() { 
-                        self.selected_index = self.results.len().saturating_sub(1); 
                     }
                 }
                 

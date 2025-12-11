@@ -39,7 +39,8 @@ pub fn start_hotkey_listener() {
     }
 }
 
-#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+#[cfg(not(target_os = "windows"))]
+#[allow(dead_code)]
 pub fn start_hotkey_listener() {
     // No-op on non-Windows platforms
 }
