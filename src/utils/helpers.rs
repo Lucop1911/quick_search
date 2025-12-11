@@ -10,7 +10,6 @@ pub mod helpers {
     }
     
     pub fn evaluate_math(expr: &str) -> Option<String> {
-        // Try to evaluate as math expression
         match meval::eval_str(expr) {
             Ok(result) => {
                 // Check if the result is meaningful (not just the input)
@@ -29,5 +28,51 @@ pub mod helpers {
         text.starts_with("https://") || 
         text.starts_with("www.") ||
         (text.contains('.') && text.split('.').count() >= 2 && !text.contains(' '))
+    }
+
+    use arboard::Clipboard;
+        pub fn copy_to_clipboard(text: &str) {
+        #[cfg(target_os = "linux")]
+        {
+            if std::env::var("WAYLAND_DISPLAY").is_ok() {
+                // Wayland
+                use std::process::{Command, Stdio};
+                use std::io::Write;
+                
+                match Command::new("wl-copy")
+                    .stdin(Stdio::piped())
+                    .spawn()
+                {
+                    Ok(mut child) => {
+                        if let Some(mut stdin) = child.stdin.take() {
+                            let _ = stdin.write_all(text.as_bytes());
+                        }
+                    }
+                    Err(e) => eprintln!("Failed to copy (Wayland): {}", e),
+                }
+            } else {
+                // X11
+                match Clipboard::new() {
+                    Ok(mut clipboard) => {
+                        if let Err(err) = clipboard.set_text(text.to_string()) {
+                            eprintln!("Failed to set clipboard text (X11): {}", err);
+                        }
+                    }
+                    Err(err) => eprintln!("Failed to access clipboard (X11): {}", err),
+                }
+            }
+        }
+        
+        #[cfg(not(target_os = "linux"))]
+        {
+            match Clipboard::new() {
+                Ok(mut clipboard) => {
+                    if let Err(err) = clipboard.set_text(text.to_string()) {
+                        eprintln!("Failed to set clipboard text: {}", err);
+                    }
+                }
+                Err(err) => eprintln!("Failed to access clipboard: {}", err),
+            }
+        }
     }
 }

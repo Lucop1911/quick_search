@@ -1,4 +1,4 @@
-use crate::utils::{helpers::helpers, utils::{ActionType, SearchResult}};
+use crate::utils::{helpers::helpers::{self, copy_to_clipboard}, utils::{ActionType, SearchResult}};
 
 pub fn execute_action(result: &SearchResult, query: &str) {
     // Save to history (except for special commands)
@@ -81,7 +81,7 @@ pub fn execute_action(result: &SearchResult, query: &str) {
             let _ = webbrowser::open(&url_to_open);
         }
         ActionType::MathResult(result) => {
-            // Future clipboard implementation
+            copy_to_clipboard(&result);
             println!("Math result: {}", result);
         }
         ActionType::WebSearch(query) => {

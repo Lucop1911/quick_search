@@ -13,6 +13,8 @@ dirs = "6.0.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 chrono = "0.4"
+arboard = "3.6.1"
+wl-clipboard-rs = "0.9.2"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winuser"] }
