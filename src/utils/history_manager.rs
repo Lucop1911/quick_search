@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
-use crate::{gui::history::HistoryApp, utils::{execute_action::execute_action, utils::SearchResult}};
+use crate::{gui::history::HistoryApp, utils::{execute_action::execute_action, settings_manager::SettingsManager, utils::SearchResult}};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct HistoryEntry {
@@ -114,8 +114,13 @@ impl HistoryManager {
     }
     
     pub fn save_history(&self, history: &[HistoryEntry]) -> Result<(), std::io::Error> {
-        let json = serde_json::to_string_pretty(history)?;
-        fs::write(&self.history_file, json)?;
+        let settings_manager = SettingsManager::new();
+        let settings = settings_manager.load_settings();
+
+        if settings.enable_history == true {
+            let json = serde_json::to_string_pretty(history)?;
+            fs::write(&self.history_file, json)?;
+        }
         Ok(())
     }
     

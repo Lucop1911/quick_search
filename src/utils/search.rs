@@ -1,9 +1,12 @@
-use crate::utils::{get_apps::get_applications, helpers::helpers::{evaluate_math, is_url}, utils::{ActionType, SearchResult}};
+use crate::utils::{get_apps::get_applications, helpers::helpers::{evaluate_math, is_url}, settings_manager::SettingsManager, utils::{ActionType, SearchResult}};
 use crate::utils::check_path::check_path;
 
 pub fn perform_search(query: &str) -> Vec<SearchResult> {
     let mut results = Vec::new();
     let query_lower = query.to_lowercase();
+
+    let settings_manager = SettingsManager::new();
+    let settings = settings_manager.load_settings();
     
     // Handle special commands starting with @
     if query.starts_with('@') {
@@ -42,33 +45,40 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
     }
 
     // Check for math expression
-    if let Some(math_result) = evaluate_math(query) {
-        results.push(SearchResult {
-            title: format!("= {}", math_result),
-            subtitle: "Math calculation. Click or press Enter to copy".to_string(),
-            icon: "🔢".to_string(),
-            action: ActionType::MathResult(math_result),
-        });
+    if settings.enable_math_eval == true {
+        if let Some(math_result) = evaluate_math(query) {
+            results.push(SearchResult {
+                title: format!("= {}", math_result),
+                subtitle: "Math calculation. Click or press Enter to copy".to_string(),
+                icon: "🔢".to_string(),
+                action: ActionType::MathResult(math_result),
+            });
+        }
     }
-    
+
     // Check for URL
-    if is_url(query) {
-        results.push(SearchResult {
-            title: query.to_string(),
-            subtitle: "Open URL".to_string(),
-            icon: "🌐".to_string(),
-            action: ActionType::OpenUrl(query.to_string()),
-        });
+    if settings.enable_web_search == true {
+        if is_url(query) {
+            results.push(SearchResult {
+                title: query.to_string(),
+                subtitle: "Open URL".to_string(),
+                icon: "🌐".to_string(),
+                action: ActionType::OpenUrl(query.to_string()),
+            });
+        }
     }
-    
     // Check for file path
-    if let Some(path_result) = check_path(query) {
-        results.push(path_result);
+    if settings.enable_file_search == true {
+        if let Some(path_result) = check_path(query) {
+            results.push(path_result);
+        }
     }
     
     // Search for applications
-    let app_results = get_applications(&query_lower);
-    results.extend(app_results);
+    if settings.enable_app_search == true {
+        let app_results = get_applications(&query_lower);
+        results.extend(app_results);
+    }
     
     // Add web search fallback if no other results
     if results.is_empty() || results.len() < 3 {
