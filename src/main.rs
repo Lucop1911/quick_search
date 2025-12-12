@@ -2,8 +2,10 @@ mod gui;
 mod utils;
 
 use eframe::egui;
+use single_instance::SingleInstance;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    const VERSION: &str = env!("CARGO_PKG_VERSION");
     let args: Vec<String> = std::env::args().collect();
     
     // Detect if this instance is a temporary window (spawned by the hotkey listener).
@@ -11,6 +13,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Check for special command-line arguments
     if args.len() > 1 {
         match args[1].as_str() {
+            "--version" | "--v" => {
+                println!("{}", VERSION);
+                return Ok(());
+            }
             "--history" => {
                 return run_history_window();
             }
@@ -23,9 +29,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             _ => {}
         }
     }
-    
-    // Run main search window
-    println!("Quick Search started.");
+
+    let instance = SingleInstance::new("quick_search_single_instance").unwrap();
+
+    if !instance.is_single() {
+        println!("Another instance is already running.");
+        return Ok(());
+    }
 
     #[cfg(target_os = "linux")]
     {

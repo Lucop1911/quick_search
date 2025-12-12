@@ -46,7 +46,7 @@ impl QuickSearchApp {
 impl eframe::App for QuickSearchApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         const BLUE_HIGHLIGHT: Color32 = Color32::from_rgb(50, 140, 255);
-        
+
         // Main window Frame: Almost fully transparent background
         egui::CentralPanel::default()
             .frame(Frame {
@@ -297,7 +297,6 @@ impl eframe::App for QuickSearchApp {
                     }
                 }
             });
-        
         ctx.request_repaint();
     }
 }
