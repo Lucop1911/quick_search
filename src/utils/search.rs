@@ -45,7 +45,7 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
     if let Some(math_result) = evaluate_math(query) {
         results.push(SearchResult {
             title: format!("= {}", math_result),
-            subtitle: "Math calculation".to_string(),
+            subtitle: "Math calculation. Click or press Enter to copy".to_string(),
             icon: "🔢".to_string(),
             action: ActionType::MathResult(math_result),
         });
