@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Run main search window
     println!("Quick Search started.");
 
-    #[cfg(not(target_os = "windows"))]
+    #[cfg(target_os = "linux")]
     {
         let native_options = eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()

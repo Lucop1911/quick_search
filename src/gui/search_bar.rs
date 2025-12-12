@@ -239,7 +239,7 @@ impl eframe::App for QuickSearchApp {
                     }
 
                     // Single display for linux
-                    #[cfg(not(target_os = "windows"))]
+                    #[cfg(target_os = "linux")]
                     {
                         if let Some(result) = self.results.get(self.selected_index) {
                             let is_selected = true;

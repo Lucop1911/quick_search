@@ -15,7 +15,7 @@ serde_json = "1.0"
 chrono = "0.4"
 arboard = "3.6.1"
 
-[target.'cfg(not(windows))'.dependencies]
+[target.'cfg(linux)'.dependencies]
 wl-clipboard-rs = "0.9.2"
 
 [target.'cfg(windows)'.dependencies]
