@@ -78,22 +78,10 @@ impl HistoryManager {
     }
     
     fn get_history_path() -> PathBuf {
-        #[cfg(target_os = "linux")]
-        {
-            if let Some(config_dir) = dirs::config_dir() {
-                let app_dir = config_dir.join("quick_search");
-                let _ = fs::create_dir_all(&app_dir);
-                return app_dir.join("history.json");
-            }
-        }
-        
-        #[cfg(target_os = "windows")]
-        {
-            if let Some(config_dir) = dirs::config_dir() {
-                let app_dir = config_dir.join("QuickSearch");
-                let _ = fs::create_dir_all(&app_dir);
-                return app_dir.join("history.json");
-            }
+        if let Some(config_dir) = dirs::config_dir() {
+            let app_dir = config_dir.join("quick_search");
+            let _ = fs::create_dir_all(&app_dir);
+            return app_dir.join("history.json");
         }
         
         // Fallback

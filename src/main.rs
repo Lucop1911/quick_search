@@ -8,9 +8,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     const VERSION: &str = env!("CARGO_PKG_VERSION");
     let args: Vec<String> = std::env::args().collect();
     
-    // Detect if this instance is a temporary window (spawned by the hotkey listener).
-    let _is_temp_window = args.iter().any(|a| a == "--temp-window");
-    // Check for special command-line arguments
     if args.len() > 1 {
         match args[1].as_str() {
             "--version" | "--v" => {
@@ -37,53 +34,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    #[cfg(target_os = "linux")]
-    {
-        let native_options = eframe::NativeOptions {
-            viewport: egui::ViewportBuilder::default()
-                .with_inner_size([400.0, 130.0])
-                .with_decorations(false)
-                .with_transparent(true)
-                .with_resizable(false)
-                .with_position([600.0, 20.0])
-                .with_always_on_top(),
-            ..Default::default()
-        };
+    let native_options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size([500.0, 130.0]) // Fixed height to accommodate results
+            .with_decorations(false)
+            .with_transparent(false)
+            .with_resizable(false)
+            .with_always_on_top(),
+        ..Default::default()
+    };
 
-        eframe::run_native(
-            "Quick Search",
-            native_options,
-            Box::new(|cc| Ok(Box::new(gui::search_bar::QuickSearchApp::new(cc)))),
-        )?;
-    }
-
-    #[cfg(target_os = "windows")]
-    {  
-        let native_options = eframe::NativeOptions {
-            viewport: egui::ViewportBuilder::default()
-                .with_inner_size([400.0, 60.0])
-                .with_decorations(false)
-                .with_transparent(true)
-                .with_resizable(false)
-                .with_always_on_top(),
-            ..Default::default()
-        };
-
-        eframe::run_native(
-            "Quick Search",
-            native_options,
-            Box::new(|cc| Ok(Box::new(gui::search_bar::QuickSearchApp::new(cc)))),
-        )?;
-    }
-
-    #[cfg(target_os = "windows")]
-    {
-        if !_is_temp_window {
-            println!("Quick Search entering background listener (Windows). Press Alt+S to open the search bar.");
-            // loop for the ALT+S hotkey
-            crate::utils::hotkey_listener::start_hotkey_listener();
-        }
-    }
+    eframe::run_native(
+        "Quick Search",
+        native_options,
+        Box::new(|cc| Ok(Box::new(gui::search_bar::QuickSearchApp::new(cc)))),
+    )?;
 
     Ok(())
 }
@@ -93,7 +58,6 @@ fn run_history_window() -> Result<(), Box<dyn std::error::Error>> {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([600.0, 500.0])
             .with_resizable(true)
-            .with_position([500.0, 200.0])
             .with_decorations(true),
         ..Default::default()
     };
@@ -114,7 +78,6 @@ fn run_settings_window() -> Result<(), Box<dyn std::error::Error>> {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([600.0, 500.0])
             .with_resizable(true)
-            .with_position([500.0, 200.0])
             .with_decorations(true),
         ..Default::default()
     };
@@ -135,7 +98,6 @@ fn run_info_window() -> Result<(), Box<dyn std::error::Error>> {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([600.0, 550.0])
             .with_resizable(true)
-            .with_position([500.0, 200.0])
             .with_decorations(true),
         ..Default::default()
     };

@@ -9,7 +9,7 @@ pub fn check_path(text: &str) -> Option<SearchResult> {
         return Some(SearchResult {
             title: text.to_string(),
             subtitle: if is_dir { "Open folder" } else { "Open file" }.to_string(),
-            icon: if is_dir { "📁" } else { "📄" }.to_string(),
+            icon: if is_dir { "[DIR]" } else { "[FILE]" }.to_string(),
             action: ActionType::OpenPath(path.to_path_buf()),
         });
     }
@@ -23,7 +23,7 @@ pub fn check_path(text: &str) -> Option<SearchResult> {
                 return Some(SearchResult {
                     title: text.to_string(),
                     subtitle: if is_dir { "Open folder" } else { "Open file" }.to_string(),
-                    icon: if is_dir { "📁" } else { "📄" }.to_string(),
+                    icon: if is_dir { "[DIR]" } else { "[FILE]" }.to_string(),
                     action: ActionType::OpenPath(expanded),
                 });
             }

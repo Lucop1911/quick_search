@@ -16,7 +16,7 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
             results.push(SearchResult {
                 title: "Settings".to_string(),
                 subtitle: "Configure Quick Search".to_string(),
-                icon: "⚙️".to_string(),
+                icon: "[SET]".to_string(),
                 action: ActionType::OpenSettings,
             });
         }
@@ -25,7 +25,7 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
             results.push(SearchResult {
                 title: "Informations".to_string(),
                 subtitle: "Application information".to_string(),
-                icon: "ℹ️".to_string(),
+                icon: "[INFO]".to_string(),
                 action: ActionType::OpenInfo,
             });
         }
@@ -34,7 +34,7 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
             results.push(SearchResult {
                 title: "History".to_string(),
                 subtitle: "View search history".to_string(),
-                icon: "📜".to_string(),
+                icon: "[HIST]".to_string(),
                 action: ActionType::OpenHistory,
             });
         }
@@ -50,7 +50,7 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
             results.push(SearchResult {
                 title: format!("= {}", math_result),
                 subtitle: "Math calculation. Click or press Enter to copy".to_string(),
-                icon: "🔢".to_string(),
+                icon: "[CALC]".to_string(),
                 action: ActionType::MathResult(math_result),
             });
         }
@@ -62,7 +62,7 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
             results.push(SearchResult {
                 title: query.to_string(),
                 subtitle: "Open URL".to_string(),
-                icon: "🌐".to_string(),
+                icon: "[URL]".to_string(),
                 action: ActionType::OpenUrl(query.to_string()),
             });
         }
@@ -85,7 +85,7 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
         results.push(SearchResult {
             title: format!("Search for \"{}\"", query),
             subtitle: "Search on the web".to_string(),
-            icon: "🔍".to_string(),
+            icon: "[SRC]".to_string(),
             action: ActionType::WebSearch(query.to_string()),
         });
     }

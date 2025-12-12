@@ -1,13 +1,14 @@
 use eframe::egui;
 use egui::{Frame, CornerRadius, Color32, Margin};
-use crate::utils::{execute_action::execute_action, search::perform_search, utils::{SearchResult}};
+use crate::utils::{execute_action::execute_action, hyprland_integration::HyprlandIntegration, search::perform_search, utils::{SearchResult}};
 
 pub struct QuickSearchApp {
     search_query: String,
     results: Vec<SearchResult>,
     selected_index: usize,
     first_frame: bool,
-    _window_height: f32,
+    hyprland: Option<HyprlandIntegration>,
+    initial_setup_done: bool
 }
 
 impl QuickSearchApp {
@@ -17,7 +18,8 @@ impl QuickSearchApp {
             results: Vec::new(),
             selected_index: 0,
             first_frame: true,
-            _window_height: 130.0,
+            hyprland: Some(HyprlandIntegration::new()),
+            initial_setup_done: false
         }
     }
     
@@ -37,7 +39,8 @@ impl QuickSearchApp {
             
             execute_action(result, &self.search_query);
             
-            // Hide the search bar if opening a special window
+            self.search_query.clear();
+            self.results.clear();
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
         }
     }
@@ -47,37 +50,49 @@ impl eframe::App for QuickSearchApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         const BLUE_HIGHLIGHT: Color32 = Color32::from_rgb(50, 140, 255);
 
-        // Main window Frame: Almost fully transparent background
+        if !self.initial_setup_done {
+            if let Some(ref mut hyprland) = self.hyprland {
+                let _ = hyprland.setup_launcher_window("Quick Search", 500);
+                self.initial_setup_done = true;
+            }
+        }
+
         egui::CentralPanel::default()
             .frame(Frame {
-                fill: Color32::from_rgba_unmultiplied(20, 20, 24, 130),
-                corner_radius: CornerRadius::ZERO,
+                fill: Color32::from_rgba_premultiplied(20, 20, 24, 250),
+                corner_radius: CornerRadius::same(8),
                 inner_margin: Margin::same(8),
-                outer_margin: 0.0.into(),
-                shadow: egui::epaint::Shadow::NONE,
-                stroke: egui::Stroke::new(1.0, Color32::from_rgba_unmultiplied(60, 60, 70, 180)),
+                outer_margin: Margin::same(0),
+                shadow: egui::epaint::Shadow {
+                    offset: [0, 4],
+                    blur: 16,
+                    spread: 0,
+                    color: Color32::from_rgba_premultiplied(0, 0, 0, 100),
+                },
+                stroke: egui::Stroke::new(1.0, Color32::from_rgba_premultiplied(60, 60, 70, 180)),
                 ..Frame::default()
             })
             .show(ctx, |ui| {
                 ui.style_mut().spacing.item_spacing = egui::vec2(0.0, 4.0);
                 
-                // Search Input Frame
                 let search_frame = Frame {
-                    fill: Color32::from_rgba_unmultiplied(25, 25, 30, 255), 
+                    fill: Color32::from_rgba_premultiplied(25, 25, 30, 255), 
                     corner_radius: CornerRadius::same(6),
-                    inner_margin: Margin::symmetric(10, 6),
+                    inner_margin: Margin::symmetric(12, 8),
                     stroke: egui::Stroke::new(2.0, BLUE_HIGHLIGHT),
                     ..Frame::default()
                 };
                 
                 let original_style = ui.style().clone(); 
                 let mut custom_visuals = ui.style().visuals.clone();
-                custom_visuals.selection.bg_fill = Color32::from_rgba_unmultiplied(50, 140, 255, 100);
+                custom_visuals.selection.bg_fill = Color32::from_rgba_premultiplied(50, 140, 255, 100);
                 custom_visuals.widgets.active.fg_stroke.color = BLUE_HIGHLIGHT;
                 ui.style_mut().visuals = custom_visuals;
 
-
+                // Keyboard shortcuts
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) { 
+                    self.search_query.clear();
+                    self.results.clear();
                     ctx.send_viewport_cmd(egui::ViewportCommand::Close); 
                 }
                 
@@ -128,150 +143,45 @@ impl eframe::App for QuickSearchApp {
                 
                 if self.first_frame { 
                     search_response.request_focus();
-                    #[cfg(target_os = "windows")]
-                    {
-                        if let Some(cmd) = egui::ViewportCommand::center_on_screen(ctx) {
-                            ctx.send_viewport_cmd(cmd);
-                        }
-                    }
                     self.first_frame = false; 
                 }
                 
                 if search_response.changed() { 
                     self.search(); 
-                    if search_response.changed() {
-                        // Re-run search when input changes
-                        self.search();
-
-                        // Responsive layout for windows
-                        #[cfg(target_os = "windows")]
-                        {
-                            let base_height = 60.0f32;
-                            let per_item = 42.0f32;
-                            let max_extra_items = 6usize; // limit suggestions to avoid huge windows
-                            let items = (self.results.len()).min(max_extra_items) as f32;
-                            let desired = base_height + items * per_item;
-
-                            if (desired - self._window_height).abs() > 1.0 {
-                                self._window_height = desired;
-                                ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(
-                                    egui::vec2(400.0, self._window_height),
-                                ));
-                            }
-                        }
-                    }
                 }
                 
-                // SUGGESTIONS
-                if !self.results.is_empty() {
-                    ui.add_space(4.0);
-                    ui.separator();
-                    ui.add_space(4.0);
+                ui.add_space(4.0);
+                
+                Frame {
+                    fill: Color32::TRANSPARENT,
+                    ..Frame::default()
+                }
+                .show(ui, |ui| {
+                    ui.set_height(70.0); // Fixed height for result area
+                    
+                    if !self.results.is_empty() {
+                        ui.separator();
+                        ui.add_space(4.0);
 
-                    // On Windows show a vertical list of suggestions (responsive)
-                    #[cfg(target_os = "windows")]
-                    {
-                        // Limited suggestions
-                        let max_visible = 6usize;
-                        let mut hovered_index: Option<usize> = None;
-                        let mut clicked_index: Option<usize> = None;
-
-                        for (i, result) in self.results.iter().enumerate().take(max_visible) {
-                            let is_selected = i == self.selected_index;
-
-                            let item_frame = Frame {
-                                fill: if is_selected {
-                                    Color32::from_rgba_unmultiplied(80, 85, 110, 240)
-                                } else {
-                                    Color32::from_rgba_unmultiplied(20, 20, 24, 5)
-                                },
-                                corner_radius: CornerRadius::same(4),
-                                inner_margin: Margin::symmetric(8, 8),
-                                ..Frame::default()
-                            };
-
-                            let item_resp = item_frame.show(ui, |ui| {
-                                ui.set_width(ui.available_width());
-                                ui.horizontal(|ui| {
-                                    let icon_text = match result.icon.as_str() {
-                                        "📱" => "[APP]", "🌐" => "[WEB]", "📁" => "[DIR]",
-                                        "📄" => "[FILE]", "🔢" => "[CALC]", "🔍" => "[SEARCH]",
-                                        "⚙️" => "[SET]", "ℹ️" => "[INFO]", "📜" => "[HIST]",
-                                        _ => "[?]",
-                                    };
-
-                                    ui.label(egui::RichText::new(icon_text)
-                                        .size(14.0)
-                                        .color(BLUE_HIGHLIGHT)
-                                        .monospace());
-                                    ui.add_space(8.0);
-                                    ui.vertical(|ui| {
-                                        ui.spacing_mut().item_spacing.y = 1.0;
-                                        ui.label(egui::RichText::new(&result.title)
-                                            .size(14.0)
-                                            .color(Color32::from_rgb(240, 240, 245)));
-                                        ui.label(egui::RichText::new(&result.subtitle)
-                                            .size(11.0)
-                                            .color(Color32::from_rgb(150, 150, 160)));
-                                    });
-                                });
-                            });
-
-                            let rect = item_resp.response.rect;
-                            let hover = ui.interact(rect, egui::Id::new(i), egui::Sense::click());
-                            if hover.hovered() {
-                                hovered_index = Some(i);
-                            }
-                            if hover.clicked() {
-                                clicked_index = Some(i);
-                            }
-
-                            ui.add_space(4.0);
-                        }
-
-                        if let Some(h) = hovered_index {
-                            self.selected_index = h;
-                        }
-                        if let Some(c) = clicked_index {
-                            self.selected_index = c;
-                            self.execute_selected(ctx);
-                        }
-                    }
-
-                    // Single display for linux
-                    #[cfg(target_os = "linux")]
-                    {
                         if let Some(result) = self.results.get(self.selected_index) {
-                            let is_selected = true;
-
                             let frame = Frame {
-                                fill: if is_selected {
-                                    Color32::from_rgba_unmultiplied(80, 85, 110, 240)
-                                } else {
-                                    Color32::from_rgba_unmultiplied(20, 20, 24, 5)
-                                },
-                                corner_radius: CornerRadius::ZERO,
-                                inner_margin: Margin::symmetric(8, 8),
+                                fill: Color32::from_rgba_premultiplied(80, 85, 110, 240),
+                                corner_radius: CornerRadius::same(6),
+                                inner_margin: Margin::symmetric(10, 8),
                                 ..Frame::default()
                             };
 
                             let response = frame.show(ui, |ui| {
                                 ui.set_width(ui.available_width());
                                 ui.horizontal(|ui| {
-                                    let icon_text = match result.icon.as_str() {
-                                        "📱" => "[APP]", "🌐" => "[WEB]", "📁" => "[DIR]",
-                                        "📄" => "[FILE]", "🔢" => "[CALC]", "🔍" => "[SEARCH]",
-                                        "⚙️" => "[SET]", "ℹ️" => "[INFO]", "📜" => "[HIST]",
-                                        _ => "[?]",
-                                    };
 
-                                    ui.label(egui::RichText::new(icon_text)
+                                    ui.label(egui::RichText::new(&result.icon)
                                         .size(14.0)
                                         .color(BLUE_HIGHLIGHT)
                                         .monospace());
                                     ui.add_space(8.0);
                                     ui.vertical(|ui| {
-                                        ui.spacing_mut().item_spacing.y = 1.0;
+                                        ui.spacing_mut().item_spacing.y = 2.0;
                                         ui.label(egui::RichText::new(&result.title)
                                             .size(14.0)
                                             .color(Color32::from_rgb(240, 240, 245)));
@@ -292,11 +202,11 @@ impl eframe::App for QuickSearchApp {
                             if hover_response.clicked() {
                                 self.execute_selected(ctx);
                             }
-                            ui.add_space(4.0);
                         }
                     }
-                }
+                });
             });
+        
         ctx.request_repaint();
     }
 }

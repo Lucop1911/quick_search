@@ -32,8 +32,6 @@ pub mod helpers {
 
     use arboard::Clipboard;
         pub fn copy_to_clipboard(text: &str) {
-        #[cfg(target_os = "linux")]
-        {
             if std::env::var("WAYLAND_DISPLAY").is_ok() {
                 // Wayland
                 use std::process::{Command, Stdio};
@@ -60,19 +58,6 @@ pub mod helpers {
                     }
                     Err(err) => eprintln!("Failed to access clipboard (X11): {}", err),
                 }
-            }
-        }
-        
-        #[cfg(not(target_os = "linux"))]
-        {
-            match Clipboard::new() {
-                Ok(mut clipboard) => {
-                    if let Err(err) = clipboard.set_text(text.to_string()) {
-                        eprintln!("Failed to set clipboard text: {}", err);
-                    }
-                }
-                Err(err) => eprintln!("Failed to access clipboard: {}", err),
-            }
         }
     }
 }

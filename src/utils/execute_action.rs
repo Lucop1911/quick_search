@@ -1,4 +1,7 @@
-use crate::utils::{helpers::helpers::{self, copy_to_clipboard}, utils::{ActionType, SearchResult}};
+use crate::utils::{
+    helpers::helpers::{self, copy_to_clipboard},
+    utils::{ActionType, SearchResult},
+};
 
 pub fn execute_action(result: &SearchResult, query: &str) {
     // Save to history (except for special commands)
@@ -6,72 +9,43 @@ pub fn execute_action(result: &SearchResult, query: &str) {
         result.action,
         ActionType::OpenHistory | ActionType::OpenSettings | ActionType::OpenInfo
     );
-    
+
     if should_save_history {
-        use crate::utils::history_manager::{HistoryManager, HistoryEntry};
+        use crate::utils::history_manager::{HistoryEntry, HistoryManager};
         let manager = HistoryManager::new();
         let entry = HistoryEntry::from_search(query, result);
         manager.add_entry(entry);
     }
-    
+
     match &result.action {
         ActionType::OpenHistory => {
             let exe_path = std::env::current_exe().ok();
             if let Some(exe) = exe_path {
-                let _ = std::process::Command::new(exe)
-                    .arg("--history")
-                    .spawn();
+                let _ = std::process::Command::new(exe).arg("--history").spawn();
             }
         }
         ActionType::OpenSettings => {
             let exe_path = std::env::current_exe().ok();
             if let Some(exe) = exe_path {
-                let _ = std::process::Command::new(exe)
-                    .arg("--settings")
-                    .spawn();
+                let _ = std::process::Command::new(exe).arg("--settings").spawn();
             }
         }
         ActionType::OpenInfo => {
             let exe_path = std::env::current_exe().ok();
             if let Some(exe) = exe_path {
-                let _ = std::process::Command::new(exe)
-                    .arg("--info")
-                    .spawn();
+                let _ = std::process::Command::new(exe).arg("--info").spawn();
             }
         }
         ActionType::OpenApp(path) => {
-            #[cfg(target_os = "linux")]
-            {
-                let path_str = path.to_string_lossy();
-                // Extract the executable from the Exec line
-                let exec_parts: Vec<&str> = path_str.split_whitespace().collect();
-                if let Some(exec) = exec_parts.first() {
-                    let _ = std::process::Command::new(exec)
-                        .spawn();
-                }
-            }
-            
-            #[cfg(target_os = "windows")]
-            {
-                let _ = std::process::Command::new("cmd")
-                    .args(&["/C", "start", "", path.to_str().unwrap_or("")])
-                    .spawn();
+            let path_str = path.to_string_lossy();
+            // Extract the executable from the Exec line
+            let exec_parts: Vec<&str> = path_str.split_whitespace().collect();
+            if let Some(exec) = exec_parts.first() {
+                let _ = std::process::Command::new(exec).spawn();
             }
         }
         ActionType::OpenPath(path) => {
-            #[cfg(target_os = "linux")]
-            {
-                let _ = std::process::Command::new("xdg-open")
-                    .arg(path)
-                    .spawn();
-            }
-            
-            #[cfg(target_os = "windows")]
-            {
-                let _ = std::process::Command::new("explorer")
-                    .arg(path)
-                    .spawn();
-            }
+            let _ = std::process::Command::new("xdg-open").arg(path).spawn();
         }
         ActionType::OpenUrl(url) => {
             let mut url_to_open = url.clone();
@@ -85,8 +59,7 @@ pub fn execute_action(result: &SearchResult, query: &str) {
             println!("Math result: {}", result);
         }
         ActionType::WebSearch(query) => {
-            let search_url = format!("https://www.google.com/search?q={}", 
-                helpers::encode(query));
+            let search_url = format!("https://www.google.com/search?q={}", helpers::encode(query));
             let _ = webbrowser::open(&search_url);
         }
     }
