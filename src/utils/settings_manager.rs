@@ -9,6 +9,8 @@ pub struct Settings {
     pub enable_math_eval: bool,
     pub enable_file_search: bool,
     pub enable_app_search: bool,
+    pub terminal_command: String,
+    pub text_editor_command: String,
 }
 
 impl Default for Settings {
@@ -19,6 +21,8 @@ impl Default for Settings {
             enable_math_eval: true,
             enable_file_search: true,
             enable_app_search: true,
+            terminal_command: String::new(),
+            text_editor_command: String::new(),
         }
     }
 }

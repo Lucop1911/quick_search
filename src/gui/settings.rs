@@ -1,5 +1,5 @@
 use eframe::egui;
-use egui::{Frame, CornerRadius, Color32, Margin, ScrollArea, Align};
+use egui::{Align, Color32, CornerRadius, Frame, Margin, ScrollArea, TextEdit};
 use crate::utils::settings_manager::{Settings, SettingsManager};
 
 const BLUE_HIGHLIGHT: Color32 = Color32::from_rgb(50, 140, 255);
@@ -38,7 +38,7 @@ impl eframe::App for SettingsApp {
                 ..Frame::default()
             })
             .show(ctx, |ui| {
-                // Header
+                // Header (No change)
                 ui.horizontal(|ui| {
                     ui.add_space(4.0);
                     ui.heading(egui::RichText::new("⚙️  Settings")
@@ -62,14 +62,15 @@ impl eframe::App for SettingsApp {
                 ui.separator();
                 ui.add_space(16.0);
 
-                // Centered scrollable content - use available height
+                // Centered scrollable content
                 ScrollArea::vertical()
                     .auto_shrink([false; 2])
                     .show(ui, |ui| {
                         ui.vertical_centered(|ui| {
                             let mut settings_changed = false;
                             
-                            // Search Features
+                            // 1. Search Features Frame (No Change)
+                            // ... (Existing code for Search Features here)
                             Frame {
                                 fill: Color32::from_rgb(28, 28, 32),
                                 corner_radius: CornerRadius::same(8),
@@ -122,13 +123,45 @@ impl eframe::App for SettingsApp {
                                 );
                             });
 
+                            ui.add_space(20.0);
+                            
+                            // 2. NEW: Editor & Terminal Settings Frame
+                            Frame {
+                                fill: Color32::from_rgb(28, 28, 32),
+                                corner_radius: CornerRadius::same(8),
+                                inner_margin: Margin::same(16),
+                                stroke: egui::Stroke::new(1.0, Color32::from_rgb(60, 60, 70)),
+                                ..Frame::default()
+                            }
+                            .show(ui, |ui| {
+                                ui.set_max_width(520.0);
+                                
+                                ui.label(egui::RichText::new("Editor & Terminal")
+                                    .size(15.0)
+                                    .strong()
+                                    .color(BLUE_HIGHLIGHT));
+                                ui.add_space(12.0);
+                                
+                                Self::render_input_setting(ui, &mut settings_changed,
+                                    &mut self.settings.terminal_command,
+                                    "💻  Terminal Command",
+                                    "Command to launch your preferred terminal emulator (e.g., 'alacritty', 'kitty', 'gnome-terminal')"
+                                );
+                                
+                                Self::render_input_setting(ui, &mut settings_changed,
+                                    &mut self.settings.text_editor_command,
+                                    "✏️  Default Text Editor",
+                                    "Command to launch your preferred text editor (e.g., 'xed', 'nvim', 'subl'). Takes priority over system detection."
+                                );
+                            });
+
                             if settings_changed {
                                 self.save_settings();
                             }
 
                             ui.add_space(20.0);
 
-                            // Info footer
+                            // Info footer (No change)
                             Frame {
                                 fill: Color32::from_rgba_unmultiplied(40, 50, 70, 100),
                                 corner_radius: CornerRadius::same(6),
@@ -146,7 +179,7 @@ impl eframe::App for SettingsApp {
                                 });
                             });
 
-                            ui.add_space(16.0); // Extra space at bottom
+                            ui.add_space(16.0);
                         });
                     });
 
@@ -188,6 +221,44 @@ impl SettingsApp {
                         .size(11.5)
                         .color(Color32::from_rgb(150, 150, 165)));
                 });
+            });
+        });
+        ui.add_space(8.0);
+    }
+
+    fn render_input_setting(
+        ui: &mut egui::Ui,
+        settings_changed: &mut bool,
+        setting_value: &mut String,
+        title: &str,
+        description: &str,
+    ) {
+        Frame {
+            fill: Color32::from_rgba_unmultiplied(35, 35, 42, 200),
+            corner_radius: CornerRadius::same(6),
+            inner_margin: Margin::symmetric(14, 12),
+            ..Frame::default()
+        }
+        .show(ui, |ui| {
+            ui.vertical(|ui| {
+                ui.spacing_mut().item_spacing.y = 2.0;
+                ui.label(egui::RichText::new(title)
+                    .size(13.5)
+                    .strong()
+                    .color(Color32::from_rgb(220, 220, 235)));
+                ui.label(egui::RichText::new(description)
+                    .size(11.5)
+                    .color(Color32::from_rgb(150, 150, 165)));
+                
+                ui.add_space(8.0);
+
+                let text_edit = TextEdit::singleline(setting_value)
+                    .desired_width(f32::INFINITY)
+                    .frame(true)
+                    .hint_text("Enter command name here (e.g., 'code')");
+                
+                let response = ui.add(text_edit);
+                *settings_changed |= response.changed();
             });
         });
         ui.add_space(8.0);

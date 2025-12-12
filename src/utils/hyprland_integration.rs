@@ -86,8 +86,7 @@ impl HyprlandIntegration {
         }
         Ok(())
     }
-
-
+    
     pub fn setup_launcher_window(&mut self, title: &str, width: i32) -> Result<(), Box<dyn std::error::Error>> {
         std::thread::sleep(std::time::Duration::from_millis(100));
         

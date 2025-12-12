@@ -56,6 +56,13 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
         }
     }
 
+    // Check for file path
+    if settings.enable_file_search == true {
+        if let Some(path_result) = check_path(query) {
+            results.push(path_result);
+        }
+    }
+
     // Check for URL
     if settings.enable_web_search == true {
         if is_url(query) {
@@ -65,12 +72,6 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
                 icon: "[URL]".to_string(),
                 action: ActionType::OpenUrl(query.to_string()),
             });
-        }
-    }
-    // Check for file path
-    if settings.enable_file_search == true {
-        if let Some(path_result) = check_path(query) {
-            results.push(path_result);
         }
     }
     

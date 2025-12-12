@@ -2,7 +2,7 @@ mod gui;
 mod utils;
 
 use eframe::egui;
-use single_instance::SingleInstance;
+use named_lock::NamedLock;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -23,20 +23,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--info" => {
                 return run_info_window();
             }
+            "--force" => {
+                return run_main_window(None);
+            }
             _ => {}
         }
     }
 
-    let instance = SingleInstance::new("quick_search_single_instance").unwrap();
+    let lock = NamedLock::create("quick_search_single_instance")?;
+    let guard = match lock.try_lock() {
+        Ok(guard) => guard,
+        Err(_) => {
+            eprintln!("Another instance is already running.");
+            eprintln!("If you're sure no other instance is running, use: --force");
+            return Ok(());
+        }
+    };
 
-    if !instance.is_single() {
-        println!("Another instance is already running.");
-        return Ok(());
-    }
+    run_main_window(Some(guard))
+}
 
+fn run_main_window(_guard: Option<named_lock::NamedLockGuard>) -> Result<(), Box<dyn std::error::Error>> {
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([500.0, 130.0]) // Fixed height to accommodate results
+            .with_inner_size([500.0, 130.0])
             .with_decorations(false)
             .with_transparent(false)
             .with_resizable(false)
