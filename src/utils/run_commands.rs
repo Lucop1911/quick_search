@@ -22,7 +22,7 @@ pub fn run_command(command: &str) -> Result<()> {
         return Ok(());
     }
 
-    let terminals: &[(&str, &[&str])] = &[
+    const TERMINALS: &[(&str, &[&str])] = &[
         ("kitty", &["-e"]),
         ("alacritty", &["-e"]),
         ("wezterm", &["start"]),
@@ -46,7 +46,7 @@ pub fn run_command(command: &str) -> Result<()> {
         ("guake", &["-e"]),
     ];
 
-    for (terminal, flags) in terminals {
+    for (terminal, flags) in TERMINALS {
         if is_command_available(terminal) {
             Command::new(terminal)
                 .args(*flags)

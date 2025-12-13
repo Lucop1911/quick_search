@@ -1,5 +1,5 @@
 use crate::utils::{get_apps::get_applications, helpers::helpers::{evaluate_math, is_command_available, is_url}, settings_manager::SettingsManager, utils::{ActionType, SearchResult}};
-use crate::utils::check_path::check_path;
+use crate::utils::paths::check_path;
 
 pub fn perform_search(query: &str) -> Vec<SearchResult> {
     let mut results = Vec::new();

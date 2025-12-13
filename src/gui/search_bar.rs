@@ -60,7 +60,6 @@ impl eframe::App for QuickSearchApp {
         egui::CentralPanel::default()
             .frame(Frame {
                 fill: Color32::from_rgba_premultiplied(20, 20, 24, 250),
-                corner_radius: CornerRadius::same(8),
                 inner_margin: Margin::same(8),
                 outer_margin: Margin::same(0),
                 shadow: egui::epaint::Shadow {

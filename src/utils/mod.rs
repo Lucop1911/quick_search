@@ -3,7 +3,7 @@ pub mod get_apps;
 pub mod utils;
 pub mod helpers;
 pub mod execute_action;
-pub mod check_path;
+pub mod paths;
 pub mod history_manager;
 pub mod settings_manager;
 pub mod hyprland_integration;

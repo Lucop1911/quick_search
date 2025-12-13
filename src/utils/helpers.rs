@@ -68,4 +68,22 @@ pub mod helpers {
             .map(|output| output.status.success())
             .unwrap_or(false)
     }
+
+    pub fn get_terminal_editor() -> String {
+        if let Ok(editor) = std::env::var("EDITOR") {
+            if !editor.is_empty() {
+                return editor;
+            }
+        }
+
+        let editors = vec!["nvim", "vim", "nano", "micro", "vi"];
+        for editor in editors {
+            if is_command_available(editor) {
+                return editor.to_string();
+            }
+        }
+
+        // Final fallback
+        "nano".to_string()
+    }
 }
