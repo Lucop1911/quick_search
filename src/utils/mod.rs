@@ -7,3 +7,4 @@ pub mod check_path;
 pub mod history_manager;
 pub mod settings_manager;
 pub mod hyprland_integration;
+pub mod run_commands;

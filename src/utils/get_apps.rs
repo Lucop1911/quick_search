@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::utils::utils::SearchResult;
+use crate::utils::{helpers::helpers::is_command_available, utils::SearchResult};
 
 pub fn get_applications(query: &str) -> Vec<SearchResult> {
     let mut results = Vec::new();
@@ -106,12 +106,4 @@ pub fn parse_desktop_file(path: &Path, query: &str) -> Option<SearchResult> {
     }
     
     None
-}
-
-pub fn is_command_available(cmd: &str) -> bool {
-    std::process::Command::new("which")
-        .arg(cmd)
-        .output()
-        .map(|output| output.status.success())
-        .unwrap_or(false)
 }

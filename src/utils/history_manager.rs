@@ -27,6 +27,7 @@ impl HistoryEntry {
             ActionType::OpenUrl(url) => ("OpenUrl".to_string(), url.clone()),
             ActionType::MathResult(res) => ("MathResult".to_string(), res.clone()),
             ActionType::WebSearch(q) => ("WebSearch".to_string(), q.clone()),
+            ActionType::RunCommand(command) => ("Command".to_string(), command.clone()),
         };
         
         let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
@@ -55,6 +56,7 @@ impl HistoryEntry {
             "OpenUrl" => ActionType::OpenUrl(self.action_data.clone()),
             "MathResult" => ActionType::MathResult(self.action_data.clone()),
             "WebSearch" => ActionType::WebSearch(self.action_data.clone()),
+            "Command" => ActionType::RunCommand(self.action_data.clone()),
             _ => ActionType::WebSearch(self.query.clone()),
         };
         

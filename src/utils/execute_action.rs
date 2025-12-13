@@ -1,5 +1,5 @@
 use crate::utils::{
-    helpers::helpers::{self, copy_to_clipboard}, settings_manager::SettingsManager, utils::{ActionType, SearchResult}
+    helpers::helpers::{self, copy_to_clipboard, is_command_available}, run_commands::run_command, settings_manager::SettingsManager, utils::{ActionType, SearchResult}
 };
 use std::path::Path;
 
@@ -61,6 +61,9 @@ pub fn execute_action(result: &SearchResult, query: &str) {
         ActionType::WebSearch(query) => {
             let search_url = format!("https://www.google.com/search?q={}", helpers::encode(query));
             let _ = webbrowser::open(&search_url);
+        }
+        ActionType::RunCommand(command) => {
+            let _ = run_command(command);
         }
     }
 }
@@ -238,12 +241,4 @@ fn get_terminal_editor() -> String {
 
     // Final fallback
     "nano".to_string()
-}
-
-fn is_command_available(cmd: &str) -> bool {
-    std::process::Command::new("which")
-        .arg(cmd)
-        .output()
-        .map(|output| output.status.success())
-        .unwrap_or(false)
 }

@@ -1,4 +1,4 @@
-use crate::utils::{get_apps::get_applications, helpers::helpers::{evaluate_math, is_url}, settings_manager::SettingsManager, utils::{ActionType, SearchResult}};
+use crate::utils::{get_apps::get_applications, helpers::helpers::{evaluate_math, is_command_available, is_url}, settings_manager::SettingsManager, utils::{ActionType, SearchResult}};
 use crate::utils::check_path::check_path;
 
 pub fn perform_search(query: &str) -> Vec<SearchResult> {
@@ -75,6 +75,18 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
         }
     }
     
+    // Run command
+    if settings.enable_run_commands == true {
+        if is_command_available(&query.to_lowercase()) || query.starts_with("sudo ") {
+            results.push(SearchResult {
+                title: query.to_string(),
+                subtitle: "Run command".to_string(),
+                icon: "[CMD]".to_string(),
+                action: ActionType::RunCommand(query.to_string().to_lowercase()) 
+            });
+        }
+    }
+
     // Search for applications
     if settings.enable_app_search == true {
         let app_results = get_applications(&query_lower);

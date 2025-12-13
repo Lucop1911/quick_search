@@ -60,4 +60,12 @@ pub mod helpers {
             }
         }
     }
+
+    pub fn is_command_available(cmd: &str) -> bool {
+        std::process::Command::new("which")
+            .arg(cmd)
+            .output()
+            .map(|output| output.status.success())
+            .unwrap_or(false)
+    }
 }

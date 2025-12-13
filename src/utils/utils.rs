@@ -18,4 +18,5 @@ pub enum ActionType {
     OpenUrl(String),
     MathResult(String),
     WebSearch(String),
+    RunCommand(String),
 }

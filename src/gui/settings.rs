@@ -1,8 +1,10 @@
 use eframe::egui;
 use egui::{Align, Color32, CornerRadius, Frame, Margin, ScrollArea, TextEdit};
-use crate::utils::settings_manager::{Settings, SettingsManager};
+use crate::utils::{helpers::helpers::is_command_available, settings_manager::{Settings, SettingsManager}};
 
 const BLUE_HIGHLIGHT: Color32 = Color32::from_rgb(50, 140, 255);
+const BORDER_NORMAL: Color32 = Color32::from_rgb(60, 60, 70);
+const BORDER_INVALID: Color32 = Color32::from_rgb(200, 60, 60);
 
 pub struct SettingsApp {
     settings: Settings,
@@ -68,9 +70,6 @@ impl eframe::App for SettingsApp {
                     .show(ui, |ui| {
                         ui.vertical_centered(|ui| {
                             let mut settings_changed = false;
-                            
-                            // 1. Search Features Frame (No Change)
-                            // ... (Existing code for Search Features here)
                             Frame {
                                 fill: Color32::from_rgb(28, 28, 32),
                                 corner_radius: CornerRadius::same(8),
@@ -121,11 +120,17 @@ impl eframe::App for SettingsApp {
                                     "📜  Search History",
                                     "Save and access your search history"
                                 );
+                                
+                                // Commands
+                                Self::render_setting_item(ui, &mut settings_changed,
+                                    &mut self.settings.enable_run_commands,
+                                    " Run Command",
+                                    "Run commands on a new terminal");
+
                             });
 
                             ui.add_space(20.0);
-                            
-                            // 2. NEW: Editor & Terminal Settings Frame
+
                             Frame {
                                 fill: Color32::from_rgb(28, 28, 32),
                                 corner_radius: CornerRadius::same(8),
@@ -142,16 +147,24 @@ impl eframe::App for SettingsApp {
                                     .color(BLUE_HIGHLIGHT));
                                 ui.add_space(12.0);
                                 
+                                 let terminal_valid = self.settings.terminal_command.is_empty()
+                                    || is_command_available(&self.settings.terminal_command);
+
+                                let editor_valid = self.settings.text_editor_command.is_empty()
+                                    || is_command_available(&self.settings.text_editor_command);
+
                                 Self::render_input_setting(ui, &mut settings_changed,
                                     &mut self.settings.terminal_command,
                                     "💻  Terminal Command",
-                                    "Command to launch your preferred terminal emulator (e.g., 'alacritty', 'kitty', 'gnome-terminal')"
+                                    "Command to launch your preferred terminal emulator (e.g., 'alacritty', 'kitty', 'gnome-terminal')",
+                                    terminal_valid
                                 );
                                 
                                 Self::render_input_setting(ui, &mut settings_changed,
                                     &mut self.settings.text_editor_command,
                                     "✏️  Default Text Editor",
-                                    "Command to launch your preferred text editor (e.g., 'xed', 'nvim', 'subl'). Takes priority over system detection."
+                                    "Command to launch your preferred text editor (e.g., 'xed', 'nvim', 'subl'). Takes priority over system detection.",
+                                    editor_valid
                                 );
                             });
 
@@ -187,7 +200,6 @@ impl eframe::App for SettingsApp {
                     ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                 }
             });
-
         ctx.request_repaint();
     }
 }
@@ -229,38 +241,52 @@ impl SettingsApp {
     fn render_input_setting(
         ui: &mut egui::Ui,
         settings_changed: &mut bool,
-        setting_value: &mut String,
+        value: &mut String,
         title: &str,
         description: &str,
+        is_valid: bool,
     ) {
+        let border = if is_valid || value.is_empty() {
+            BORDER_NORMAL
+        } else {
+            BORDER_INVALID
+        };
+
         Frame {
             fill: Color32::from_rgba_unmultiplied(35, 35, 42, 200),
             corner_radius: CornerRadius::same(6),
             inner_margin: Margin::symmetric(14, 12),
+            stroke: egui::Stroke::new(1.5, border),
             ..Frame::default()
         }
         .show(ui, |ui| {
-            ui.vertical(|ui| {
-                ui.spacing_mut().item_spacing.y = 2.0;
-                ui.label(egui::RichText::new(title)
-                    .size(13.5)
-                    .strong()
-                    .color(Color32::from_rgb(220, 220, 235)));
-                ui.label(egui::RichText::new(description)
+            ui.label(title);
+            ui.label(
+                egui::RichText::new(description)
                     .size(11.5)
-                    .color(Color32::from_rgb(150, 150, 165)));
-                
-                ui.add_space(8.0);
+                    .color(Color32::from_rgb(150, 150, 165)),
+            );
 
-                let text_edit = TextEdit::singleline(setting_value)
+            ui.add_space(6.0);
+
+            let response = ui.add(
+                TextEdit::singleline(value)
                     .desired_width(f32::INFINITY)
-                    .frame(true)
-                    .hint_text("Enter command name here (e.g., 'code')");
-                
-                let response = ui.add(text_edit);
-                *settings_changed |= response.changed();
-            });
+                    .hint_text("Enter command (must be in PATH)"),
+            );
+
+            *settings_changed |= response.changed();
+
+            if !is_valid && !value.is_empty() {
+                ui.add_space(4.0);
+                ui.label(
+                    egui::RichText::new("Command not found in PATH")
+                        .size(11.0)
+                        .color(BORDER_INVALID),
+                );
+            }
         });
+
         ui.add_space(8.0);
     }
 }
