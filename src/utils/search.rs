@@ -75,9 +75,15 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
         }
     }
     
+    // Search for applications
+    if settings.enable_app_search == true {
+        let app_results = get_applications(&query_lower);
+        results.extend(app_results);
+    }
+
     // Run command
     if settings.enable_run_commands == true {
-        if is_command_available(&query.to_lowercase()) || query.starts_with("sudo ") {
+        if is_command_available(&query) || query.starts_with("sudo ") {
             results.push(SearchResult {
                 title: query.to_string(),
                 subtitle: "Run command".to_string(),
@@ -87,12 +93,6 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
         }
     }
 
-    // Search for applications
-    if settings.enable_app_search == true {
-        let app_results = get_applications(&query_lower);
-        results.extend(app_results);
-    }
-    
     // Add web search fallback if no other results
     if results.is_empty() || results.len() < 3 {
         results.push(SearchResult {

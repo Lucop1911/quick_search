@@ -114,19 +114,18 @@ impl eframe::App for SettingsApp {
                                     "Search for files and folders by path"
                                 );
 
-                                // History
-                                Self::render_setting_item(ui, &mut settings_changed,
-                                    &mut self.settings.enable_history,
-                                    "📜  Search History",
-                                    "Save and access your search history"
-                                );
-                                
                                 // Commands
                                 Self::render_setting_item(ui, &mut settings_changed,
                                     &mut self.settings.enable_run_commands,
                                     " Run Command",
                                     "Run commands on a new terminal");
 
+                                // History
+                                Self::render_setting_item(ui, &mut settings_changed,
+                                    &mut self.settings.enable_history,
+                                    "📜  Search History",
+                                    "Save and access your search history"
+                                );
                             });
 
                             ui.add_space(20.0);
