@@ -81,9 +81,9 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
         results.extend(app_results);
     }
 
-    // Run command
+    // Check if valid command
     if settings.enable_run_commands == true {
-        if is_command_available(&query) || query.starts_with("sudo ") {
+        if is_command_available(&query.to_string().split_ascii_whitespace().next().unwrap_or(&query)) {
             results.push(SearchResult {
                 title: query.to_string(),
                 subtitle: "Run command".to_string(),
