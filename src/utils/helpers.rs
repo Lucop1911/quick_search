@@ -27,6 +27,7 @@ pub mod helpers {
         text.starts_with("http://") || 
         text.starts_with("https://") || 
         text.starts_with("www.") ||
+        text.starts_with("localhost:") ||
         (text.contains('.') && text.split('.').count() >= 2 && !text.contains(' '))
     }
 
