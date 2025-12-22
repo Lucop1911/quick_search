@@ -151,14 +151,7 @@ impl eframe::App for HistoryApp {
                                     ui.horizontal(|ui| {
                                         // ICON
                                         ui.label(
-                                            egui::RichText::new(match entry.result_icon.as_str() {
-                                                "📱" => "[APP]",
-                                                "🌐" => "[WEB]",
-                                                "📁" => "[DIR]",
-                                                "📄" => "[FILE]",
-                                                "🔢" => "[CALC]",
-                                                _ => "[?]",
-                                            })
+                                            egui::RichText::new(entry.result_icon.as_str())
                                             .size(12.0)
                                             .color(BLUE_HIGHLIGHT)
                                             .monospace(),

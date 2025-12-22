@@ -7,21 +7,12 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
 
     let settings_manager = SettingsManager::new();
     let settings = settings_manager.load_settings();
-    
+
     // Handle special commands starting with @
     if query.starts_with('@') {
         let command = query[1..].to_lowercase();
-        
-        if command.contains("settings") || "settings".contains(&command) {
-            results.push(SearchResult {
-                title: "Settings".to_string(),
-                subtitle: "Configure Quick Search".to_string(),
-                icon: "[SET]".to_string(),
-                action: ActionType::OpenSettings,
-            });
-        }
-        
-        if command.contains("info") || "info".contains(&command) {
+
+        if command == "info" || "info".contains(&command) {
             results.push(SearchResult {
                 title: "Informations".to_string(),
                 subtitle: "Application information".to_string(),
@@ -30,7 +21,16 @@ pub fn perform_search(query: &str) -> Vec<SearchResult> {
             });
         }
         
-        if command.contains("history") || "history".contains(&command) {
+        if command == "settings" || "settings".contains(&command) {
+            results.push(SearchResult {
+                title: "Settings".to_string(),
+                subtitle: "Configure Quick Search".to_string(),
+                icon: "[SET]".to_string(),
+                action: ActionType::OpenSettings,
+            });
+        }
+
+        if command == "history" || "history".contains(&command) {
             results.push(SearchResult {
                 title: "History".to_string(),
                 subtitle: "View search history".to_string(),
