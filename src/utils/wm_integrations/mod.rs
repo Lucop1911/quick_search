@@ -1,0 +1,12 @@
+pub mod awesome;
+pub mod i3;
+pub mod hyprland;
+pub mod leftwm;
+pub mod xmonad;
+pub mod sway;
+pub mod qtile;
+pub mod herbstluftwm;
+pub mod generic_x11;
+pub mod river;
+pub mod bspwm;
+pub mod dwm;

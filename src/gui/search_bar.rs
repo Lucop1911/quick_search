@@ -1,13 +1,13 @@
 use eframe::egui;
 use egui::{Frame, CornerRadius, Color32, Margin};
-use crate::utils::{execute_action::execute_action, hyprland_integration::HyprlandIntegration, search::perform_search, utils::{SearchResult}};
+use crate::utils::{execute_action::execute_action, search::perform_search, utils::SearchResult, window_manger::WindowManagerIntegration};
 
 pub struct QuickSearchApp {
     search_query: String,
     results: Vec<SearchResult>,
     selected_index: usize,
     first_frame: bool,
-    hyprland: Option<HyprlandIntegration>,
+    wm_integration: Option<WindowManagerIntegration>,
     initial_setup_done: bool
 }
 
@@ -18,7 +18,7 @@ impl QuickSearchApp {
             results: Vec::new(),
             selected_index: 0,
             first_frame: true,
-            hyprland: Some(HyprlandIntegration::new()),
+            wm_integration: Some(WindowManagerIntegration::new()),
             initial_setup_done: false
         }
     }
@@ -51,8 +51,8 @@ impl eframe::App for QuickSearchApp {
         const BLUE_HIGHLIGHT: Color32 = Color32::from_rgb(50, 140, 255);
 
         if !self.initial_setup_done {
-            if let Some(ref mut hyprland) = self.hyprland {
-                let _ = hyprland.setup_launcher_window("Quick Search", 500);
+            if let Some(ref mut wm) = self.wm_integration {
+                let _ = wm.setup_launcher_window("Quick Search", 500);
                 self.initial_setup_done = true;
             }
         }
@@ -76,7 +76,7 @@ impl eframe::App for QuickSearchApp {
                 
                 let search_frame = Frame {
                     fill: Color32::from_rgba_premultiplied(25, 25, 30, 255), 
-                    corner_radius: CornerRadius::same(6),
+                    corner_radius: CornerRadius::same(0),
                     inner_margin: Margin::symmetric(12, 8),
                     stroke: egui::Stroke::new(2.0, BLUE_HIGHLIGHT),
                     ..Frame::default()
