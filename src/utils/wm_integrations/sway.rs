@@ -2,6 +2,7 @@ use crate::utils::window_manger::WindowManagerBackend;
 use anyhow::Result;
 use std::process::Command;
 
+// Not tested
 pub struct SwayBackend;
 
 impl SwayBackend {

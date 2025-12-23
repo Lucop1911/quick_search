@@ -1,6 +1,7 @@
 use crate::utils::{window_manger::WindowManagerBackend, wm_integrations::generic_x11::GenericX11Backend};
 use anyhow::Result;
 
+// Not tested
 pub struct XmonadBackend {
     x11: GenericX11Backend,
 }

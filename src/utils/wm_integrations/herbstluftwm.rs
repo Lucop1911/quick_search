@@ -2,6 +2,7 @@ use crate::utils::{window_manger::WindowManagerBackend};
 use anyhow::Result;
 use std::process::Command;
 
+// Not yet tested
 pub struct HerbstluftwmBackend;
 
 impl HerbstluftwmBackend {
